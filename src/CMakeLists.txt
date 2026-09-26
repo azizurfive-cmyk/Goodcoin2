@@ -45,7 +45,7 @@ if(NOT IS_SOURCE_TARBALL AND PROJECT_IS_TOP_LEVEL)
 endif()
 add_custom_target(generate_build_info
   BYPRODUCTS ${PROJECT_BINARY_DIR}/src/bitcoin-build-info.h
-  COMMAND ${CMAKE_COMMAND} -DGIT_EXECUTABLE=${GIT_EXECUTABLE} -DBUILD_INFO_HEADER_PATH=${PROJECT_BINARY_DIR}/src/bitcoin-build-info.h -DSOURCE_DIR=${PROJECT_SOURCE_DIR} -P ${PROJECT_SOURCE_DIR}/cmake/script/GenerateBuildInfo.cmake
+  COMMAND ${CMAKE_COMMAND} -DGIT_EXECUTABLE=${GIT_EXECUTABLE} -DBUILD_INFO_HEADER_PATH=${PROJECT_BINARY_DIR}/src/bitcoin-build-info.h -DSOURCE_DIR=${PROJECT_SOURCE_DIR} -P ${PROJECT_SOURCE_DIR}/cmake/bitcoin-build-info.cmake
   COMMENT "Generating bitcoin-build-info.h"
   VERBATIM
 )
@@ -120,7 +120,6 @@ add_library(bitcoin_common STATIC EXCLUDE_FROM_ALL
   deploymentinfo.cpp
   external_signer.cpp
   init/common.cpp
-  kernel/chainparams.cpp
   key.cpp
   key_io.cpp
   merkleblock.cpp
@@ -146,6 +145,10 @@ add_library(bitcoin_common STATIC EXCLUDE_FROM_ALL
   script/signingprovider.cpp
   script/solver.cpp
 )
+# NOTE: `kernel/chainparams.cpp` is intentionally not included here.
+# It is built as part of the separate `bitcoinkernel` target in src/kernel/CMakeLists.txt.
+# Adding it to `bitcoin_common` creates duplicate CChainParams implementations and linker
+# failures (undefined reference / multiple definition style errors).
 target_link_libraries(bitcoin_common
   PRIVATE
     core_interface
@@ -250,7 +253,7 @@ add_library(bitcoin_node STATIC EXCLUDE_FROM_ALL
   policy/ephemeral_policy.cpp
   policy/fees/block_policy_estimator.cpp
   policy/fees/estimator_args.cpp
-  policy/fees/estimator_man.cpp
+  policy/fees/man.cpp
   policy/fees/mempool_estimator.cpp
   policy/packages.cpp
   policy/rbf.cpp
@@ -264,7 +267,6 @@ add_library(bitcoin_node STATIC EXCLUDE_FROM_ALL
   rpc/mempool.cpp
   rpc/mining.cpp
   rpc/net.cpp
-  rpc/node.cpp
   rpc/output_script.cpp
   rpc/rawtransaction.cpp
   rpc/server.cpp
